@@ -22,6 +22,69 @@
 </head>
 <body>
 
+<!-- ===================== PIN SETUP SCREEN ===================== -->
+<div id="pin-setup-screen" class="pin-screen hidden">
+  <div class="pin-card">
+    <div class="pin-logo">
+      <i data-lucide="shield-check"></i>
+    </div>
+    <h1>Crear PIN de acceso</h1>
+    <p class="pin-desc">Elegí un PIN de 4 dígitos. Todas las personas que usen esta app van a necesitarlo para entrar.</p>
+    <div class="pin-dots" id="setup-dots">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" data-digit="1">1</button>
+      <button class="pin-key" data-digit="2">2</button>
+      <button class="pin-key" data-digit="3">3</button>
+      <button class="pin-key" data-digit="4">4</button>
+      <button class="pin-key" data-digit="5">5</button>
+      <button class="pin-key" data-digit="6">6</button>
+      <button class="pin-key" data-digit="7">7</button>
+      <button class="pin-key" data-digit="8">8</button>
+      <button class="pin-key" data-digit="9">9</button>
+      <button class="pin-key pin-key-empty"></button>
+      <button class="pin-key" data-digit="0">0</button>
+      <button class="pin-key pin-key-del" id="setup-delete"><i data-lucide="delete"></i></button>
+    </div>
+    <p class="pin-hint">Este PIN lo compartís con tu pareja junto con el link</p>
+  </div>
+</div>
+
+<!-- ===================== PIN ENTRY SCREEN ===================== -->
+<div id="pin-entry-screen" class="pin-screen hidden">
+  <div class="pin-card">
+    <div class="pin-logo">
+      <i data-lucide="lock"></i>
+    </div>
+    <h1>Cuentas Claras</h1>
+    <p class="pin-desc" id="pin-entry-desc">Ingresá tu PIN para continuar</p>
+    <div class="pin-dots" id="entry-dots">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" data-digit="1">1</button>
+      <button class="pin-key" data-digit="2">2</button>
+      <button class="pin-key" data-digit="3">3</button>
+      <button class="pin-key" data-digit="4">4</button>
+      <button class="pin-key" data-digit="5">5</button>
+      <button class="pin-key" data-digit="6">6</button>
+      <button class="pin-key" data-digit="7">7</button>
+      <button class="pin-key" data-digit="8">8</button>
+      <button class="pin-key" data-digit="9">9</button>
+      <button class="pin-key pin-key-empty"></button>
+      <button class="pin-key" data-digit="0">0</button>
+      <button class="pin-key pin-key-del" id="entry-delete"><i data-lucide="delete"></i></button>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== FIREBASE SETUP SCREEN ===================== -->
 <div id="setup-screen" class="setup-screen hidden">
   <div class="setup-card">

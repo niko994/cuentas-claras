@@ -1002,46 +1002,162 @@ function startWithLocalStorage() {
   renderAll();
 }
 
-async function init() {
+// ===================== PIN SYSTEM =====================
+
+let pinBuffer = "";
+let pinMode = null; // "setup" | "entry"
+let onPinSuccess = null;
+
+function hashPin(pin) {
+  let h = 0x5a3c9f;
+  for (let i = 0; i < pin.length; i++) {
+    h = ((h << 5) - h) + pin.charCodeAt(i);
+    h |= 0;
+  }
+  return (h >>> 0).toString(16);
+}
+
+function getPinStorageKey() {
+  const id = roomId || "local";
+  return `cc_pin_${id}`;
+}
+
+function getSessionKey() {
+  const id = roomId || "local";
+  return `cc_unlocked_${id}`;
+}
+
+function isPinSet() {
+  return !!localStorage.getItem(getPinStorageKey());
+}
+
+function isPinUnlocked() {
+  return sessionStorage.getItem(getSessionKey()) === "1";
+}
+
+function markPinUnlocked() {
+  sessionStorage.setItem(getSessionKey(), "1");
+}
+
+function updatePinDots(containerId, count, isError = false) {
+  const dots = document.querySelectorAll(`#${containerId} .pin-dot`);
+  dots.forEach((dot, i) => {
+    dot.classList.remove("filled", "error");
+    if (isError) dot.classList.add("error");
+    else if (i < count) dot.classList.add("filled");
+  });
+}
+
+function shakeDots(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.classList.remove("shake");
+  void container.offsetWidth;
+  container.classList.add("shake");
+  setTimeout(() => container.classList.remove("shake"), 500);
+}
+
+function showPinSetup(onSuccess) {
+  pinMode = "setup";
+  pinBuffer = "";
+  onPinSuccess = onSuccess;
+  updatePinDots("setup-dots", 0);
+  document.querySelectorAll(".pin-screen").forEach(s => s.classList.add("hidden"));
+  document.getElementById("pin-setup-screen").classList.remove("hidden");
   if (typeof lucide !== "undefined") lucide.createIcons();
+}
 
-  // Check if Firebase config is saved
-  const savedConfig = localStorage.getItem("cc_firebase_config");
+function showPinEntry(onSuccess) {
+  pinMode = "entry";
+  pinBuffer = "";
+  onPinSuccess = onSuccess;
+  updatePinDots("entry-dots", 0);
+  const desc = document.getElementById("pin-entry-desc");
+  if (desc) desc.textContent = "Ingresá tu PIN para continuar";
+  document.querySelectorAll(".pin-screen").forEach(s => s.classList.add("hidden"));
+  document.getElementById("pin-entry-screen").classList.remove("hidden");
+  if (typeof lucide !== "undefined") lucide.createIcons();
+}
 
-  if (savedConfig) {
-    try {
-      const config = JSON.parse(savedConfig);
-      await startWithFirebase(config);
-      return;
-    } catch(e) {
-      localStorage.removeItem("cc_firebase_config");
-    }
-  }
+function hidePinScreens() {
+  document.querySelectorAll(".pin-screen").forEach(s => s.classList.add("hidden"));
+}
 
-  // No config saved — check if there are local transactions (skip setup)
-  const hasLocalData = localStorage.getItem("cc_state");
-  if (hasLocalData) {
-    // Has previous data, go local
-    startWithLocalStorage();
-    return;
-  }
+function handlePinDigit(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  const dotsId = pinMode === "setup" ? "setup-dots" : "entry-dots";
+  updatePinDots(dotsId, pinBuffer.length);
 
-  // No prior data — check if first time ever (show setup OR go local with demo)
-  // For development convenience, load demo and go local
-  const isFirstTime = !localStorage.getItem("cc_seen_before");
-  if (isFirstTime) {
-    localStorage.setItem("cc_seen_before", "1");
-    startWithLocalStorage();
-    setTimeout(loadDemoData, 200);
-  } else {
-    startWithLocalStorage();
+  if (pinBuffer.length === 4) {
+    setTimeout(() => {
+      if (pinMode === "setup") {
+        localStorage.setItem(getPinStorageKey(), hashPin(pinBuffer));
+        markPinUnlocked();
+        hidePinScreens();
+        pinBuffer = "";
+        if (onPinSuccess) onPinSuccess();
+      } else {
+        const stored = localStorage.getItem(getPinStorageKey());
+        if (stored === hashPin(pinBuffer)) {
+          markPinUnlocked();
+          hidePinScreens();
+          pinBuffer = "";
+          if (onPinSuccess) onPinSuccess();
+        } else {
+          updatePinDots("entry-dots", 4, true);
+          shakeDots("entry-dots");
+          const desc = document.getElementById("pin-entry-desc");
+          if (desc) desc.textContent = "PIN incorrecto, intentá de nuevo";
+          pinBuffer = "";
+          setTimeout(() => {
+            updatePinDots("entry-dots", 0);
+            if (desc) desc.textContent = "Ingresá tu PIN para continuar";
+          }, 1200);
+        }
+      }
+    }, 120);
   }
 }
 
-// ===================== FIREBASE SETUP SCREEN HANDLERS =====================
+function handlePinDelete() {
+  if (pinBuffer.length === 0) return;
+  pinBuffer = pinBuffer.slice(0, -1);
+  const dotsId = pinMode === "setup" ? "setup-dots" : "entry-dots";
+  updatePinDots(dotsId, pinBuffer.length);
+}
+
+function initPinKeypad(screenId, deleteId) {
+  const screen = document.getElementById(screenId);
+  if (!screen) return;
+  screen.querySelectorAll(".pin-key[data-digit]").forEach(btn => {
+    btn.addEventListener("click", () => handlePinDigit(btn.getAttribute("data-digit")));
+  });
+  document.getElementById(deleteId)?.addEventListener("click", handlePinDelete);
+}
+
+// Physical keyboard support
+document.addEventListener("keydown", e => {
+  if (pinMode && e.key >= "0" && e.key <= "9") handlePinDigit(e.key);
+  if (pinMode && (e.key === "Backspace" || e.key === "Delete")) handlePinDelete();
+});
+
+function checkPinThenProceed(onUnlocked) {
+  if (!isPinSet()) {
+    showPinSetup(onUnlocked);
+  } else if (!isPinUnlocked()) {
+    showPinEntry(onUnlocked);
+  } else {
+    onUnlocked();
+  }
+}
+
+// ===================== STARTUP =====================
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Setup screen: Connect Firebase
+  initPinKeypad("pin-setup-screen", "setup-delete");
+  initPinKeypad("pin-entry-screen", "entry-delete");
+
   document.getElementById("btn-save-firebase-config")?.addEventListener("click", async () => {
     const raw = document.getElementById("firebase-config-input")?.value.trim();
     if (!raw) { alert("Pegá tu configuración de Firebase."); return; }
@@ -1057,13 +1173,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Setup screen: Use without Firebase
   document.getElementById("btn-use-local")?.addEventListener("click", () => {
     localStorage.setItem("cc_seen_before", "1");
-    startWithLocalStorage();
-    setTimeout(loadDemoData, 200);
+    checkPinThenProceed(() => {
+      startWithLocalStorage();
+      setTimeout(loadDemoData, 200);
+    });
   });
 
-  // Start app
   init();
 });
+
+async function init() {
+  if (typeof lucide !== "undefined") lucide.createIcons();
+
+  const savedConfig = localStorage.getItem("cc_firebase_config");
+
+  if (savedConfig) {
+    try {
+      const config = JSON.parse(savedConfig);
+      const ok = initFirebase(config);
+      if (ok) {
+        useFirebase = true;
+        roomId = getRoomId();
+        checkPinThenProceed(() => startWithFirebase(config));
+        return;
+      }
+    } catch(e) {
+      localStorage.removeItem("cc_firebase_config");
+    }
+  }
+
+  // Local mode — use hash as room ID for PIN isolation
+  roomId = getRoomId();
+
+  const hasLocalData = localStorage.getItem("cc_state");
+  if (hasLocalData) {
+    checkPinThenProceed(() => startWithLocalStorage());
+    return;
+  }
+
+  const isFirstTime = !localStorage.getItem("cc_seen_before");
+  if (isFirstTime) {
+    localStorage.setItem("cc_seen_before", "1");
+    checkPinThenProceed(() => {
+      startWithLocalStorage();
+      setTimeout(loadDemoData, 200);
+    });
+  } else {
+    checkPinThenProceed(() => startWithLocalStorage());
+  }
+}
+
+
