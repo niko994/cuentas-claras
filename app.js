@@ -1046,43 +1046,6 @@ function initEventHandlers() {
   });
 }
 
-// ===================== DEMO DATA =====================
-
-async function loadDemoData() {
-  state.people.personA = { name: "Nicolás", salary: 800000 };
-  state.people.personB = { name: "Jessica", salary: 600000 };
-
-  const m = new Date().toISOString().substring(0, 7);
-  const lm = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().substring(0, 7);
-  const l2m = new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1).toISOString().substring(0, 7);
-
-  state.transactions = [
-    { id: generateId(), type: "expense", amount: 45000,  description: "Supermercado Día",     category: "Comida",           date: `${m}-05`,  payer: "personA" },
-    { id: generateId(), type: "expense", amount: 22000,  description: "YPF Full",              category: "Transporte",       date: `${m}-07`,  payer: "personB" },
-    { id: generateId(), type: "expense", amount: 210000, description: "Alquiler",              category: "Vivienda",         date: `${m}-01`,  payer: "personA" },
-    { id: generateId(), type: "expense", amount: 15000,  description: "Netflix + Spotify",    category: "Entretenimiento",  date: `${m}-10`,  payer: "personB" },
-    { id: generateId(), type: "expense", amount: 38000,  description: "Edenor + Internet",    category: "Servicios",        date: `${m}-12`,  payer: "personA" },
-    { id: generateId(), type: "expense", amount: 12500,  description: "Farmacia",             category: "Salud",            date: `${m}-14`,  payer: "personB" },
-    { id: generateId(), type: "expense", amount: 68000,  description: "Cena cumpleaños",      category: "Entretenimiento",  date: `${m}-16`,  payer: "personA" },
-    { id: generateId(), type: "expense", amount: 29000,  description: "Ropa invierno",        category: "Compras",          date: `${m}-18`,  payer: "personB" },
-    { id: generateId(), type: "expense", amount: 8500,   description: "Uber",                 category: "Transporte",       date: `${m}-20`,  payer: "personA" },
-    // Mes anterior
-    { id: generateId(), type: "expense", amount: 40000,  description: "Súper semanal",        category: "Comida",           date: `${lm}-10`, payer: "personA" },
-    { id: generateId(), type: "expense", amount: 210000, description: "Alquiler anterior",   category: "Vivienda",         date: `${lm}-01`, payer: "personB" },
-    { id: generateId(), type: "expense", amount: 8000,   description: "Taxi aeropuerto",     category: "Transporte",       date: `${lm}-20`, payer: "personA" },
-    { id: generateId(), type: "expense", amount: 35000,  description: "Luz y gas",           category: "Servicios",        date: `${lm}-15`, payer: "personB" },
-    { id: generateId(), type: "expense", amount: 25000,  description: "Cine + cena",         category: "Entretenimiento",  date: `${lm}-22`, payer: "personA" },
-    // Hace 2 meses
-    { id: generateId(), type: "expense", amount: 210000, description: "Alquiler feb",        category: "Vivienda",         date: `${l2m}-01`, payer: "personA" },
-    { id: generateId(), type: "expense", amount: 32000,  description: "Supermercado",        category: "Comida",           date: `${l2m}-08`, payer: "personB" },
-    { id: generateId(), type: "expense", amount: 18000,  description: "Médico",              category: "Salud",            date: `${l2m}-12`, payer: "personA" },
-  ];
-
-  await saveState();
-  loadSettingsForm();
-  renderAll();
-}
-
 // ===================== STARTUP =====================
 
 function showApp() {
