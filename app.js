@@ -235,8 +235,15 @@ function calculateSplit(monthStr) {
 // ===================== RENDER DASHBOARD =====================
 
 function updateNetHero() {
-  const monthStr = new Date().toISOString().substring(0, 7);
-  const { pctA, pctB, totalExpenses, paidA, paidB, shouldPayA, shouldPayB, net, debtor, creditor, diffA } = calculateSplit(monthStr);
+  // Use local time for monthStr to avoid UTC timezone offset bugs
+  const now = new Date();
+  const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  // Calculate split for ALL time (overall pending balance)
+  const { pctA, pctB, paidA, paidB, shouldPayA, shouldPayB, net, debtor, creditor, diffA } = calculateSplit(null);
+
+  // Calculate split specifically for the CURRENT month for the footer stats
+  const monthlyStats = calculateSplit(monthStr);
 
   const nameA = getPersonName("personA");
   const nameB = getPersonName("personB");
@@ -247,7 +254,7 @@ function updateNetHero() {
   document.querySelectorAll("[id$='name-a'],[id$='name_a']").forEach(el => { if(el.id !== "setting-name-a") el.textContent = nameA; });
   document.querySelectorAll("[id$='name-b'],[id$='name_b']").forEach(el => { if(el.id !== "setting-name-b") el.textContent = nameB; });
 
-  // Hero amount — NET balance is the star
+  // Hero amount — NET balance is the star (all-time overall balance)
   const heroAmount = document.getElementById("net-hero-amount");
   const heroSubtitle = document.getElementById("net-hero-subtitle");
   const heroStatusBadge = document.getElementById("net-status-badge");
@@ -255,7 +262,6 @@ function updateNetHero() {
   const heroStatusText = document.getElementById("net-status-text");
 
   if (heroAmount) {
-    // Format without the $ (currency symbol is separate)
     const formatted = Number(net).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     heroAmount.textContent = formatted;
   }
@@ -275,7 +281,7 @@ function updateNetHero() {
     if (heroSubtitle) heroSubtitle.textContent = `${debtorName} le debe ${formatCurrency(net)} a ${creditorName}`;
   }
 
-  // Person A card
+  // Person A card (all-time overall status)
   const diffAEl = document.getElementById("hero-diff-a");
   if (diffAEl) {
     diffAEl.textContent = formatCurrencyShort(Math.abs(diffA));
@@ -286,7 +292,7 @@ function updateNetHero() {
   if (paidAEl) paidAEl.textContent = `Pagó ${formatCurrencyShort(paidA)}`;
   if (shouldAEl) shouldAEl.textContent = `Le toca ${formatCurrencyShort(shouldPayA)}`;
 
-  // Person B card
+  // Person B card (all-time overall status)
   const diffB = paidB - shouldPayB;
   const diffBEl = document.getElementById("hero-diff-b");
   if (diffBEl) {
@@ -298,9 +304,9 @@ function updateNetHero() {
   if (paidBEl) paidBEl.textContent = `Pagó ${formatCurrencyShort(paidB)}`;
   if (shouldBEl) shouldBEl.textContent = `Le toca ${formatCurrencyShort(shouldPayB)}`;
 
-  // Footer stats
+  // Footer stats (specifically for current month)
   const totalEl = document.getElementById("stat-total-expenses");
-  if (totalEl) totalEl.textContent = formatCurrencyShort(totalExpenses);
+  if (totalEl) totalEl.textContent = formatCurrencyShort(monthlyStats.totalExpenses);
 
   const fnA = document.getElementById("footer-name-a");
   const fnB = document.getElementById("footer-name-b");
