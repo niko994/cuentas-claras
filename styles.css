@@ -269,9 +269,11 @@ body {
   flex: 1; display: flex; flex-direction: column; gap: 4px;
   padding: 20px 0;
   border-right: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+  align-items: center;
+  justify-content: center;
 }
 .net-footer-stat:last-child { border-right: none; }
-.net-footer-stat:not(:first-child) { padding-left: 24px; }
 .net-footer-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.35); }
 .net-footer-value { font-size: 1.1rem; font-weight: 800; color: rgba(255,255,255,0.85); letter-spacing: -0.5px; }
 .person-a-color { color: #a5b4fc; }
@@ -368,6 +370,12 @@ body {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   padding: 10px 20px; border-radius: 999px; cursor: pointer;
   border: 1px solid transparent; transition: all .25s;
+}
+.btn svg, .btn i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,.3); }
 .btn-primary:hover { background: var(--brand-hover); box-shadow: 0 6px 18px rgba(59,130,246,.4); transform: translateY(-1px); }
@@ -508,8 +516,12 @@ body {
   box-shadow: 0 4px 16px rgba(59,130,246,0.45);
   padding: 0;
   margin-top: -20px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
-.bottom-nav-item.add-btn i { width: 24px; height: 24px; }
+.bottom-nav-item.add-btn i, .bottom-nav-item.add-btn svg { width: 24px; height: 24px; display: block; margin: 0; }
 
 /* ===================== RESPONSIVE — TABLET ===================== */
 @media(max-width:900px) {
@@ -535,19 +547,52 @@ body {
   /* Hero */
   .net-hero { padding: 24px 20px 0; border-radius: 22px; margin-bottom: 16px; }
   .net-hero-content { flex-direction: column; gap: 20px; margin-bottom: 24px; }
-  .net-hero-right { width: 100%; flex-direction: row; gap: 10px; }
-  .person-split-card { flex: 1; min-width: 0; padding: 12px 14px; }
-  .psc-avatar { width: 34px; height: 34px; font-size: 0.85rem; }
-  .psc-name { font-size: 0.78rem; }
-  .psc-paid, .psc-owes { font-size: 0.68rem; }
-  .psc-diff { font-size: 0.9rem; }
+  .net-hero-right { width: 100%; display: flex; flex-direction: row; gap: 10px; }
+  .person-split-card {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 8px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+  .psc-avatar {
+    width: 38px; height: 38px;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+  }
+  .psc-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+  }
+  .psc-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .psc-paid, .psc-owes {
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+  .psc-diff {
+    font-size: 1rem;
+    font-weight: 800;
+    margin-top: 4px;
+  }
   .net-hero-amount { font-size: 3.5rem; letter-spacing: -3px; }
   .net-amount-currency { font-size: 1.5rem; padding-top: 8px; }
   .net-status-badge { font-size: 0.75rem; padding: 4px 12px; }
   .net-hero-subtitle { font-size: 0.9rem; }
   .btn-settle { font-size: 0.8rem; padding: 9px 16px; }
 
-  /* Footer stats — 2×2 grid */
+  /* Footer stats — 2×2 grid centered */
   .net-hero-footer {
     margin: 0 -20px; padding: 0 20px;
     display: grid; grid-template-columns: 1fr 1fr;
@@ -555,9 +600,12 @@ body {
   .net-footer-stat {
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 14px 0;
+    padding: 14px 10px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
   }
-  .net-footer-stat:nth-child(odd) { padding-right: 12px; border-right: 1px solid rgba(255,255,255,0.06); }
+  .net-footer-stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.06); }
   .net-footer-stat:last-child, .net-footer-stat:nth-last-child(2):nth-child(odd) { border-bottom: none; }
   .net-footer-label { font-size: 0.65rem; }
   .net-footer-value { font-size: 0.95rem; }
