@@ -43,6 +43,16 @@ let currentTrendType = "bar";
 
 // ===================== FIREBASE / SYNC =====================
 
+const HARDCODED_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDTXqvbNT3H2YW8an7K1GZrjVtjxl276kE",
+  authDomain: "gastos-e1978.firebaseapp.com",
+  projectId: "gastos-e1978",
+  storageBucket: "gastos-e1978.firebasestorage.app",
+  messagingSenderId: "922197060937",
+  appId: "1:922197060937:web:6c97a06849185d3b537e98"
+};
+
+
 let db = null;
 let roomId = null;
 let useFirebase = false;
@@ -1187,20 +1197,31 @@ document.addEventListener("DOMContentLoaded", () => {
 async function init() {
   if (typeof lucide !== "undefined") lucide.createIcons();
 
+  // Try to use the hardcoded config first, fall back to localStorage
   const savedConfig = localStorage.getItem("cc_firebase_config");
-
-  if (savedConfig) {
+  let configToUse = null;
+  
+  if (typeof HARDCODED_FIREBASE_CONFIG !== "undefined" && HARDCODED_FIREBASE_CONFIG.apiKey) {
+    configToUse = HARDCODED_FIREBASE_CONFIG;
+  } else if (savedConfig) {
     try {
-      const config = JSON.parse(savedConfig);
-      const ok = initFirebase(config);
+      configToUse = JSON.parse(savedConfig);
+    } catch(e) {
+      localStorage.removeItem("cc_firebase_config");
+    }
+  }
+
+  if (configToUse) {
+    try {
+      const ok = initFirebase(configToUse);
       if (ok) {
         useFirebase = true;
         roomId = getRoomId();
-        checkPinThenProceed(() => startWithFirebase(config));
+        checkPinThenProceed(() => startWithFirebase(configToUse));
         return;
       }
     } catch(e) {
-      localStorage.removeItem("cc_firebase_config");
+      console.error("Error starting Firebase:", e);
     }
   }
 
