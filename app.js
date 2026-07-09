@@ -22,8 +22,8 @@ const CATEGORIES = {
 let state = {
   transactions: [],
   people: {
-    personA: { name: "Persona A", salary: 0 },
-    personB: { name: "Persona B", salary: 0 }
+    personA: { name: "Nicolás", salary: 0 },
+    personB: { name: "Jessica", salary: 0 }
   },
   settings: { currency: "ARS" }
 };
@@ -193,11 +193,11 @@ function getPersonName(key) {
  *   - The difference = who owes who how much (net)
  *
  * Example:
- *   Nicolás earns $800k (57%), María earns $600k (43%)
+ *   Nicolás earns $800k (57%), Jessica earns $600k (43%)
  *   Total expenses: $100k
- *   Nicolás should pay $57k, María $43k
- *   If Nicolás paid $80k and María $20k:
- *     Nicolás overpaid $23k → María owes Nicolás $23k
+ *   Nicolás should pay $57k, Jessica $43k
+ *   If Nicolás paid $80k and Jessica $20k:
+ *     Nicolás overpaid $23k → Jessica owes Nicolás $23k
  */
 function calculateSplit(monthStr) {
   const salaryA = parseFloat(state.people.personA?.salary) || 0;
@@ -921,7 +921,7 @@ function initEventHandlers() {
 
 async function loadDemoData() {
   state.people.personA = { name: "Nicolás", salary: 800000 };
-  state.people.personB = { name: "María", salary: 600000 };
+  state.people.personB = { name: "Jessica", salary: 600000 };
 
   const m = new Date().toISOString().substring(0, 7);
   const lm = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().substring(0, 7);
@@ -1187,7 +1187,6 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("cc_seen_before", "1");
     checkPinThenProceed(() => {
       startWithLocalStorage();
-      setTimeout(loadDemoData, 200);
     });
   });
 
@@ -1239,7 +1238,6 @@ async function init() {
     localStorage.setItem("cc_seen_before", "1");
     checkPinThenProceed(() => {
       startWithLocalStorage();
-      setTimeout(loadDemoData, 200);
     });
   } else {
     checkPinThenProceed(() => startWithLocalStorage());
