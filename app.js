@@ -814,6 +814,9 @@ function initEventHandlers() {
     item.addEventListener("click", () => switchTab(item.getAttribute("data-tab")));
   });
 
+  // FAB button (bottom nav)
+  document.getElementById("bnav-add")?.addEventListener("click", () => openModal());
+
   // Modal open/close
   document.getElementById("btn-open-add-modal")?.addEventListener("click", () => openModal());
   document.getElementById("btn-close-modal")?.addEventListener("click", closeModal);
