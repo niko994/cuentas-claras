@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e1b4b" />
+    </linearGradient>
+    
+    <!-- Gold/Cyan Accents for the Wallet/Shield -->
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" /> <!-- Emerald -->
+      <stop offset="50%" stop-color="#06b6d4" /> <!-- Cyan -->
+      <stop offset="100%" stop-color="#3b82f6" /> <!-- Blue -->
+    </linearGradient>
+    
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" /> <!-- Amber -->
+      <stop offset="100%" stop-color="#ec4899" /> <!-- Pink -->
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  
+  <!-- Subtle Grid Pattern in Background -->
+  <g opacity="0.05" stroke="#ffffff" stroke-width="2">
+    <line x1="64" y1="0" x2="64" y2="512" />
+    <line x1="128" y1="0" x2="128" y2="512" />
+    <line x1="192" y1="0" x2="192" y2="512" />
+    <line x1="256" y1="0" x2="256" y2="512" />
+    <line x1="320" y1="0" x2="320" y2="512" />
+    <line x1="384" y1="0" x2="384" y2="512" />
+    <line x1="448" y1="0" x2="448" y2="512" />
+    
+    <line x1="0" y1="64" x2="512" y2="64" />
+    <line x1="0" y1="128" x2="512" y2="128" />
+    <line x1="0" y1="192" x2="512" y2="192" />
+    <line x1="0" y1="256" x2="512" y2="256" />
+    <line x1="0" y1="320" x2="512" y2="320" />
+    <line x1="0" y1="384" x2="512" y2="384" />
+    <line x1="0" y1="448" x2="512" y2="448" />
+  </g>
+
+  <!-- Outer Glowing Ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="url(#primaryGrad)" stroke-width="8" opacity="0.3" filter="url(#glow)" />
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#primaryGrad)" stroke-width="2" opacity="0.5" stroke-dasharray="10 15" />
+
+  <!-- Core Icon: Wallet & Sparkles (Representing Financial Clarity) -->
+  <g filter="url(#glow)">
+    <!-- Wallet Body -->
+    <path d="M140 180 C140 160, 160 140, 180 140 H332 C352 140, 372 160, 372 180 V320 C372 340, 352 360, 332 360 H180 C160 360, 140 340, 140 320 Z" 
+          fill="none" stroke="url(#primaryGrad)" stroke-width="18" stroke-linejoin="round" />
+          
+    <!-- Wallet Flap -->
+    <path d="M290 210 H360 C375 210, 390 225, 390 240 V260 C390 275, 375 290, 360 290 H290 C275 290, 260 275, 260 260 V240 C260 225, 275 210, 290 210 Z" 
+          fill="#1e1b4b" stroke="url(#primaryGrad)" stroke-width="12" stroke-linejoin="round" />
+          
+    <!-- Flap Button / Accent -->
+    <circle cx="310" cy="250" r="12" fill="url(#accentGrad)" />
+    
+    <!-- Trending Chart Line emerging from Wallet -->
+    <path d="M170 310 L220 250 L270 280 L340 190" fill="none" stroke="url(#accentGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="340" cy="190" r="10" fill="#ffffff" filter="url(#glow)" />
+  </g>
+  
+  <!-- Sparkles -->
+  <path d="M390 120 L395 135 L410 140 L395 145 L390 160 L385 145 L370 140 L385 135 Z" fill="#22c55e" filter="url(#glow)" />
+  <path d="M120 380 L123 390 L133 393 L123 396 L120 406 L117 396 L107 393 L117 390 Z" fill="#06b6d4" opacity="0.8" />
+  <path d="M130 110 L134 120 L144 123 L134 126 L130 136 L126 126 L116 123 L126 120 Z" fill="#eab308" opacity="0.8" />
+</svg>

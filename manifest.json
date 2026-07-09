@@ -1,0 +1,18 @@
+{
+  "name": "Clarity - Control de Gastos Inteligente",
+  "short_name": "Clarity",
+  "description": "Una aplicación web premium y moderna para el control de gastos personales con presupuestos y analíticas en tiempo real.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

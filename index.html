@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuentas Claras — División de Gastos</title>
+  <meta name="description" content="Dividí gastos entre dos personas de forma proporcional a los sueldos. Sincronización en tiempo real.">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Firebase v9 modular (compat mode for CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- ===================== FIREBASE SETUP SCREEN ===================== -->
+<div id="setup-screen" class="setup-screen hidden">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <i data-lucide="split-square-horizontal"></i>
+      <span>Cuentas Claras</span>
+    </div>
+    <h1>Configuración inicial</h1>
+    <p class="setup-desc">Para sincronizar datos entre dispositivos, necesitás conectar tu propio proyecto de Firebase (gratuito).<br>Pegá tu configuración abajo:</p>
+    <textarea id="firebase-config-input" class="setup-textarea" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+    <div class="setup-hint">
+      <i data-lucide="info"></i>
+      <span>Podés obtener esto en <strong>Firebase Console → Configuración del proyecto → Tu app web</strong></span>
+    </div>
+    <button class="btn btn-primary setup-btn" id="btn-save-firebase-config">Conectar y comenzar</button>
+    <button class="btn btn-ghost" id="btn-use-local">Usar sin sincronización (solo este dispositivo)</button>
+  </div>
+</div>
+
+<!-- ===================== LOADING SCREEN ===================== -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-inner">
+    <i data-lucide="split-square-horizontal" class="loading-logo-icon"></i>
+    <span class="loading-text">Conectando...</span>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app" class="app-layout hidden">
+
+  <!-- Navbar -->
+  <nav class="top-navbar">
+    <div class="logo-container">
+      <i data-lucide="split-square-horizontal" class="logo-icon"></i>
+      <span class="logo-text">Cuentas Claras</span>
+    </div>
+
+    <div class="nav-menu">
+      <button class="nav-item active" data-tab="dashboard" id="btn-tab-dashboard">Resumen</button>
+      <button class="nav-item" data-tab="transactions" id="btn-tab-transactions">Gastos</button>
+      <button class="nav-item" data-tab="settings" id="btn-tab-settings">Personas</button>
+    </div>
+
+    <div class="nav-actions">
+      <div class="sync-indicator" id="sync-indicator" title="Estado de sincronización">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span class="sync-label" id="sync-label">Local</span>
+      </div>
+      <button class="btn-demo" id="btn-demo-data">Demo</button>
+      <button class="btn btn-primary btn-add" id="btn-open-add-modal">
+        <i data-lucide="plus"></i>
+        <span>Nuevo Gasto</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <section class="tab-panel active" id="panel-dashboard">
+
+      <!-- NET BALANCE HERO — THE MOST IMPORTANT ELEMENT -->
+      <div class="net-hero" id="net-hero">
+        <div class="net-hero-bg-orbs">
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2"></div>
+        </div>
+
+        <div class="net-hero-content">
+          <div class="net-hero-left">
+            <div class="net-status-badge" id="net-status-badge">
+              <i data-lucide="check-circle-2" id="net-status-icon"></i>
+              <span id="net-status-text">Calculando...</span>
+            </div>
+
+            <div class="net-amount-block">
+              <span class="net-amount-currency">$</span>
+              <span class="net-hero-amount" id="net-hero-amount">0</span>
+            </div>
+
+            <p class="net-hero-subtitle" id="net-hero-subtitle">Cargando...</p>
+          </div>
+
+          <div class="net-hero-right">
+            <!-- Person A split -->
+            <div class="person-split-card person-a-card">
+              <div class="psc-avatar person-a-avatar" id="hero-avatar-a">A</div>
+              <div class="psc-info">
+                <span class="psc-name" id="hero-name-a">Persona A</span>
+                <span class="psc-paid" id="hero-paid-a">Pagó $0</span>
+                <span class="psc-owes" id="hero-should-a">Le toca $0</span>
+              </div>
+              <div class="psc-diff" id="hero-diff-a">$0</div>
+            </div>
+
+            <!-- Person B split -->
+            <div class="person-split-card person-b-card">
+              <div class="psc-avatar person-b-avatar" id="hero-avatar-b">B</div>
+              <div class="psc-info">
+                <span class="psc-name" id="hero-name-b">Persona B</span>
+                <span class="psc-paid" id="hero-paid-b">Pagó $0</span>
+                <span class="psc-owes" id="hero-should-b">Le toca $0</span>
+              </div>
+              <div class="psc-diff" id="hero-diff-b">$0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly total footer -->
+        <div class="net-hero-footer">
+          <div class="net-footer-stat">
+            <span class="net-footer-label">Total gastado este mes</span>
+            <span class="net-footer-value" id="stat-total-expenses">$0</span>
+          </div>
+          <div class="net-footer-stat">
+            <span class="net-footer-label">Sueldo <span id="footer-name-a">A</span></span>
+            <span class="net-footer-value person-a-color" id="footer-pct-a">50%</span>
+          </div>
+          <div class="net-footer-stat">
+            <span class="net-footer-label">Sueldo <span id="footer-name-b">B</span></span>
+            <span class="net-footer-value person-b-color" id="footer-pct-b">50%</span>
+          </div>
+          <div class="net-footer-stat">
+            <span class="net-footer-label">Gastos registrados</span>
+            <span class="net-footer-value" id="footer-tx-count">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bento Charts Grid -->
+      <div class="bento-grid">
+
+        <div class="recent-transactions-card card-panel">
+          <div class="card-header">
+            <h3>Gastos Recientes</h3>
+            <button class="btn-link" id="btn-go-to-transactions">Ver todos →</button>
+          </div>
+          <div class="recent-list" id="dashboard-recent-transactions">
+            <p class="text-muted text-center py-6">No hay gastos aún</p>
+          </div>
+        </div>
+
+        <div class="category-chart-card card-panel">
+          <div class="card-header"><h3>Por Categoría</h3></div>
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+            <div class="chart-empty-state" id="category-chart-empty">Sin datos</div>
+          </div>
+        </div>
+
+        <div class="payer-chart-card card-panel">
+          <div class="card-header"><h3>¿Quién pagó más?</h3></div>
+          <div class="chart-container" style="min-height:200px;">
+            <canvas id="payerChart"></canvas>
+            <div class="chart-empty-state" id="payer-chart-empty">Sin datos</div>
+          </div>
+        </div>
+
+        <div class="trend-chart-card card-panel">
+          <div class="card-header">
+            <h3>Historial mensual</h3>
+            <div class="chart-selector">
+              <button class="btn-toggle active" id="btn-chart-bar">Barras</button>
+              <button class="btn-toggle" id="btn-chart-line">Línea</button>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+            <div class="chart-empty-state" id="trend-chart-empty">Añade gastos</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TRANSACTIONS ==================== -->
+    <section class="tab-panel" id="panel-transactions">
+      <div class="toolbar">
+        <div class="search-box">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="input-search" placeholder="Buscar gasto...">
+        </div>
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label>Categoría</label>
+            <select id="filter-category" class="form-select">
+              <option value="all">Todas</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Quién pagó</label>
+            <select id="filter-payer" class="form-select">
+              <option value="all">Todos</option>
+              <option value="personA" id="filter-payer-a">Persona A</option>
+              <option value="personB" id="filter-payer-b">Persona B</option>
+            </select>
+          </div>
+          <button class="btn-secondary-icon" id="btn-reset-filters" title="Limpiar filtros">
+            <i data-lucide="filter-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-card card-panel">
+        <div class="table-header-row">
+          <h3>Historial de Gastos</h3>
+          <span class="text-muted" id="filtered-count">0 gastos</span>
+        </div>
+        <div class="table-responsive">
+          <table class="transactions-table">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="date">Fecha</th>
+                <th class="sortable" data-sort="desc">Descripción</th>
+                <th>Categoría</th>
+                <th>Pagó</th>
+                <th class="sortable" data-sort="amount" style="text-align:right;">Monto</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transactions-tbody">
+              <tr><td colspan="6" class="text-center text-muted py-6">No hay gastos.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-footer">
+          <button class="btn btn-secondary" id="btn-prev-page" disabled>Anterior</button>
+          <span class="text-muted" id="pagination-text">Página 1</span>
+          <button class="btn btn-secondary" id="btn-next-page" disabled>Siguiente</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SETTINGS ==================== -->
+    <section class="tab-panel" id="panel-settings">
+      <div class="settings-grid">
+
+        <div class="card-panel">
+          <div class="card-header">
+            <h3>Persona A</h3>
+            <div class="person-a-avatar person-avatar-sm" id="settings-avatar-a">A</div>
+          </div>
+          <div class="form-group mb-3">
+            <label>Nombre</label>
+            <input type="text" id="setting-name-a" class="form-input" placeholder="Ej. Nicolás">
+          </div>
+          <div class="form-group mb-3">
+            <label>Sueldo mensual neto</label>
+            <div class="input-currency-wrapper">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="setting-salary-a" class="form-input" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="salary-share-display">
+            <span class="salary-share-label">% del ingreso total</span>
+            <span class="salary-share-value person-a-color" id="share-pct-a">50%</span>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-header">
+            <h3>Persona B</h3>
+            <div class="person-b-avatar person-avatar-sm" id="settings-avatar-b">B</div>
+          </div>
+          <div class="form-group mb-3">
+            <label>Nombre</label>
+            <input type="text" id="setting-name-b" class="form-input" placeholder="Ej. María">
+          </div>
+          <div class="form-group mb-3">
+            <label>Sueldo mensual neto</label>
+            <div class="input-currency-wrapper">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="setting-salary-b" class="form-input" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="salary-share-display">
+            <span class="salary-share-label">% del ingreso total</span>
+            <span class="salary-share-value person-b-color" id="share-pct-b">50%</span>
+          </div>
+          <button class="btn btn-primary mt-3" id="btn-save-settings">Guardar personas</button>
+        </div>
+
+        <div class="card-panel share-card">
+          <div class="card-header"><h3>Compartir acceso</h3></div>
+          <p class="text-muted pb-4">Compartí este link con tu pareja para que ambos vean y carguen gastos en tiempo real desde cualquier dispositivo.</p>
+          <div class="share-url-box">
+            <input type="text" id="share-url-input" class="form-input" readonly>
+            <button class="btn btn-primary" id="btn-copy-url">
+              <i data-lucide="copy"></i> Copiar
+            </button>
+          </div>
+          <div class="share-room-info">
+            <i data-lucide="shield-check"></i>
+            <span>Solo quienes tengan este link exacto pueden acceder a tus datos</span>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-header"><h3>Datos</h3></div>
+          <p class="text-muted pb-4">Exportá o importá tus datos localmente.</p>
+          <div class="data-buttons-grid">
+            <button class="btn btn-secondary" id="btn-export-json">Exportar JSON</button>
+            <button class="btn btn-secondary" id="btn-export-csv">Exportar CSV</button>
+            <label class="btn btn-secondary" style="text-align:center;cursor:pointer;">
+              Importar JSON
+              <input type="file" id="btn-import-json" accept=".json" style="display:none;">
+            </label>
+            <button class="btn btn-danger" id="btn-clear-all-data">Borrar gastos</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- ADD/EDIT EXPENSE MODAL -->
+<div class="modal-overlay" id="modal-transaction">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 id="modal-title-text">Nuevo Gasto</h2>
+      <button class="btn-close" id="btn-close-modal"><i data-lucide="x"></i></button>
+    </div>
+    <form id="form-transaction">
+      <input type="hidden" id="transaction-id">
+
+      <div class="form-group mb-3">
+        <label>Monto</label>
+        <div class="input-currency-wrapper">
+          <span class="currency-symbol">$</span>
+          <input type="number" id="trans-amount" class="form-input monto-grande" placeholder="0" step="0.01" required>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label>Descripción</label>
+        <input type="text" id="trans-desc" class="form-input" placeholder="Ej. Supermercado Día" required>
+      </div>
+
+      <!-- WHO PAID — HERO OF THE FORM -->
+      <div class="form-group mb-3">
+        <label>¿Quién pagó?</label>
+        <div class="payer-selector">
+          <button type="button" class="payer-btn active person-a-active" data-payer="personA" id="payer-btn-a">
+            <div class="payer-btn-avatar person-a-avatar" id="payer-avatar-a">A</div>
+            <span id="payer-btn-name-a">Persona A</span>
+          </button>
+          <button type="button" class="payer-btn" data-payer="personB" id="payer-btn-b">
+            <div class="payer-btn-avatar person-b-avatar" id="payer-avatar-b">B</div>
+            <span id="payer-btn-name-b">Persona B</span>
+          </button>
+        </div>
+        <input type="hidden" id="trans-payer" value="personA">
+      </div>
+
+      <div class="form-row-2 mb-3">
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="trans-category" class="form-select" required>
+            <option value="" disabled selected>Selecciona</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="trans-date" class="form-input" required>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Gasto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal-container modal-small">
+    <div class="modal-header">
+      <h2 id="confirm-title">¿Estás seguro?</h2>
+    </div>
+    <p id="confirm-message" class="text-muted">Esta acción no se puede deshacer.</p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger" id="btn-confirm-accept">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
