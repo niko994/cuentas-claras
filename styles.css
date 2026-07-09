@@ -104,14 +104,19 @@ body {
 .logo-container { display: flex; align-items: center; gap: 10px; }
 .logo-icon { width: 24px; height: 24px; stroke-width: 2; color: var(--brand); }
 .logo-text { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px; }
-.nav-menu { display: flex; gap: 2px; background: rgba(241,245,249,0.9); padding: 4px; border-radius: 999px; }
+.nav-menu { display: flex; gap: 4px; background: rgba(241,245,249,0.9); padding: 4px; border-radius: 14px; }
 .nav-item {
   background: transparent; border: none; color: var(--text-secondary);
-  font-family: inherit; font-size: 0.875rem; font-weight: 600;
-  padding: 7px 18px; border-radius: 999px; cursor: pointer; transition: all 0.25s;
+  font-family: inherit; font-size: 0.82rem; font-weight: 600;
+  padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: all 0.25s;
+  display: flex; align-items: center; gap: 6px;
 }
-.nav-item:hover { color: var(--text-primary); }
-.nav-item.active { background: var(--bg-panel); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.nav-item i { width: 16px; height: 16px; }
+.nav-item:hover { color: var(--text-primary); background: rgba(0,0,0,0.03); }
+.nav-item.active {
+  background: var(--bg-panel); color: var(--brand);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.15);
+}
 .nav-actions { display: flex; align-items: center; gap: 12px; }
 
 /* Sync indicator */
@@ -129,8 +134,7 @@ body {
 .sync-dot.offline { background: #f59e0b; }
 .sync-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
 
-.btn-demo { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; font-weight: 600; }
-.btn-demo:hover { color: var(--text-primary); }
+
 
 /* ===================== LAYOUT ===================== */
 .main-content { padding: 28px 5% 60px; max-width: 1400px; margin: 0 auto; }
@@ -214,13 +218,33 @@ body {
   border-radius: 16px; padding: 16px 18px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.04);
-  transition: background .3s;
+  transition: all .4s;
 }
 .person-split-card:hover { background: rgba(255,255,255,0.07); }
+
+/* Debtor card — red glow */
+.person-split-card.is-debtor {
+  border-color: rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.08);
+}
+.person-split-card.is-debtor .psc-avatar {
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.4), 0 0 16px rgba(239,68,68,0.2);
+}
+
+/* Creditor card — green glow */
+.person-split-card.is-creditor {
+  border-color: rgba(74,222,128,0.3);
+  background: rgba(34,197,94,0.06);
+}
+.person-split-card.is-creditor .psc-avatar {
+  box-shadow: 0 0 0 3px rgba(74,222,128,0.35), 0 0 16px rgba(34,197,94,0.15);
+}
+
 .psc-avatar {
   width: 40px; height: 40px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; flex-shrink: 0;
+  transition: box-shadow .4s;
 }
 .psc-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .psc-name { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.9); }
@@ -499,7 +523,7 @@ body {
   .nav-menu { display: none; }
   .nav-actions { gap: 8px; }
   .btn-add { display: none; }           /* replaced by FAB in bottom nav */
-  .btn-demo { display: none; }
+  
   .sync-indicator { padding: 4px 10px; }
   .sync-label { display: none; }        /* show only dot on mobile */
   .top-navbar { height: 56px; padding: 0 16px; }

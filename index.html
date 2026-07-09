@@ -135,9 +135,18 @@
     </div>
 
     <div class="nav-menu">
-      <button class="nav-item active" data-tab="dashboard" id="btn-tab-dashboard">Resumen</button>
-      <button class="nav-item" data-tab="transactions" id="btn-tab-transactions">Gastos</button>
-      <button class="nav-item" data-tab="settings" id="btn-tab-settings">Personas</button>
+      <button class="nav-item active" data-tab="dashboard" id="btn-tab-dashboard">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Resumen</span>
+      </button>
+      <button class="nav-item" data-tab="transactions" id="btn-tab-transactions">
+        <i data-lucide="receipt"></i>
+        <span>Gastos</span>
+      </button>
+      <button class="nav-item" data-tab="settings" id="btn-tab-settings">
+        <i data-lucide="users"></i>
+        <span>Personas</span>
+      </button>
     </div>
 
     <div class="nav-actions">
@@ -145,7 +154,6 @@
         <span class="sync-dot" id="sync-dot"></span>
         <span class="sync-label" id="sync-label">Local</span>
       </div>
-      <button class="btn-demo" id="btn-demo-data">Demo</button>
       <button class="btn btn-primary btn-add" id="btn-open-add-modal">
         <i data-lucide="plus"></i>
         <span>Nuevo Gasto</span>
@@ -161,7 +169,7 @@
         Resumen
       </button>
       <button class="bottom-nav-item" data-tab="transactions" id="bnav-transactions">
-        <i data-lucide="list"></i>
+        <i data-lucide="receipt"></i>
         Gastos
       </button>
       <button class="bottom-nav-item add-btn" id="bnav-add">
@@ -170,10 +178,6 @@
       <button class="bottom-nav-item" data-tab="settings" id="bnav-settings">
         <i data-lucide="users"></i>
         Personas
-      </button>
-      <button class="bottom-nav-item" id="bnav-demo">
-        <i data-lucide="zap"></i>
-        Demo
       </button>
     </div>
   </nav>

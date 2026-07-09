@@ -278,6 +278,10 @@ function updateNetHero() {
 
   const settleBtn = document.getElementById("btn-settle-balance");
 
+  // Person card elements for debtor/creditor coloring
+  const cardA = document.querySelector(".person-a-card");
+  const cardB = document.querySelector(".person-b-card");
+
   if (!debtor) {
     // Balanced!
     if (heroStatusBadge) heroStatusBadge.className = "net-status-badge balanced";
@@ -285,6 +289,9 @@ function updateNetHero() {
     if (heroStatusText) heroStatusText.textContent = "¡Cuentas al día!";
     if (heroSubtitle) heroSubtitle.textContent = "Todo está pareado. ¡Bien! 🎉";
     if (settleBtn) settleBtn.classList.add("hidden");
+    // Neutral cards
+    if (cardA) cardA.className = "person-split-card person-a-card";
+    if (cardB) cardB.className = "person-split-card person-b-card";
   } else {
     const debtorName = getPersonName(debtor);
     const creditorName = getPersonName(creditor);
@@ -293,6 +300,9 @@ function updateNetHero() {
     if (heroStatusText) heroStatusText.textContent = `${debtorName} debe pagar`;
     if (heroSubtitle) heroSubtitle.textContent = `${debtorName} le debe ${formatCurrency(net)} a ${creditorName}`;
     if (settleBtn) settleBtn.classList.remove("hidden");
+    // Color the debtor card red and creditor card green
+    if (cardA) cardA.className = "person-split-card person-a-card " + (debtor === "personA" ? "is-debtor" : "is-creditor");
+    if (cardB) cardB.className = "person-split-card person-b-card " + (debtor === "personB" ? "is-debtor" : "is-creditor");
   }
 
   // Person A card (all-time overall status)
@@ -806,7 +816,7 @@ function initEventHandlers() {
 
   // FAB button (bottom nav)
   document.getElementById("bnav-add")?.addEventListener("click", () => openModal());
-  document.getElementById("bnav-demo")?.addEventListener("click", loadDemoData);
+
 
   // Modal open/close
   document.getElementById("btn-open-add-modal")?.addEventListener("click", () => openModal());
@@ -939,7 +949,7 @@ function initEventHandlers() {
   });
 
   // Demo
-  document.getElementById("btn-demo-data")?.addEventListener("click", loadDemoData);
+
 
   // Export JSON
   document.getElementById("btn-export-json")?.addEventListener("click", () => {
