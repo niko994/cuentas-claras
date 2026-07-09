@@ -1,0 +1,90 @@
+{
+  "transactions": [
+    {
+      "id": "tx_import_001",
+      "type": "expense",
+      "amount": 339000,
+      "description": "Chango Más",
+      "category": "Comida",
+      "date": "2026-06-27",
+      "payer": "personA"
+    },
+    {
+      "id": "tx_import_002",
+      "type": "expense",
+      "amount": 62000,
+      "description": "Chino",
+      "category": "Comida",
+      "date": "2026-06-28",
+      "payer": "personA"
+    },
+    {
+      "id": "tx_import_003",
+      "type": "expense",
+      "amount": 24000,
+      "description": "Verdulería",
+      "category": "Comida",
+      "date": "2026-06-28",
+      "payer": "personA"
+    },
+    {
+      "id": "tx_import_004",
+      "type": "expense",
+      "amount": 16800,
+      "description": "Fiambrería",
+      "category": "Comida",
+      "date": "2026-06-16",
+      "payer": "personB"
+    },
+    {
+      "id": "tx_import_005",
+      "type": "expense",
+      "amount": 18000,
+      "description": "Fiambrería",
+      "category": "Comida",
+      "date": "2026-06-18",
+      "payer": "personB"
+    },
+    {
+      "id": "tx_import_006",
+      "type": "expense",
+      "amount": 145028,
+      "description": "Seguros Rivadavia",
+      "category": "Servicios",
+      "date": "2026-07-04",
+      "payer": "personB"
+    },
+    {
+      "id": "tx_import_007",
+      "type": "expense",
+      "amount": 13008.15,
+      "description": "Edenor",
+      "category": "Servicios",
+      "date": "2026-07-06",
+      "payer": "personB"
+    },
+    {
+      "id": "tx_import_008",
+      "type": "expense",
+      "amount": 34560.70,
+      "description": "Telecentro",
+      "category": "Servicios",
+      "date": "2026-07-06",
+      "payer": "personB"
+    },
+    {
+      "id": "tx_import_009",
+      "type": "expense",
+      "amount": 96000,
+      "description": "Regalo de papá",
+      "category": "Compras",
+      "date": "2026-07-06",
+      "payer": "personA"
+    }
+  ],
+  "people": {
+    "personA": { "name": "Nicolás", "salary": 0 },
+    "personB": { "name": "Jessica", "salary": 0 }
+  },
+  "settings": { "currency": "ARS" }
+}
