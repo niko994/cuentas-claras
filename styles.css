@@ -507,21 +507,7 @@ body {
 .bottom-nav-item i { width: 22px; height: 22px; transition: transform .2s; }
 .bottom-nav-item.active { color: var(--brand); }
 .bottom-nav-item.active i { transform: scale(1.1); }
-.bottom-nav-item.add-btn {
-  background: var(--brand);
-  color: #fff;
-  border-radius: 50%;
-  width: 52px; height: 52px;
-  flex: none;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.45);
-  padding: 0;
-  margin-top: -20px;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-.bottom-nav-item.add-btn i, .bottom-nav-item.add-btn svg { width: 24px; height: 24px; display: block; margin: 0; }
+
 
 /* ===================== RESPONSIVE — TABLET ===================== */
 @media(max-width:900px) {
@@ -531,12 +517,42 @@ body {
 /* ===================== RESPONSIVE — MOBILE ===================== */
 @media(max-width:768px) {
 
-  /* Hide top navbar nav-menu and nav-actions, show bottom nav */
+  /* Hide top navbar nav-menu, show bottom nav */
   .nav-menu { display: none; }
-  .nav-actions { gap: 8px; }
-  .btn-add { display: none; }           /* replaced by FAB in bottom nav */
-  
-  .sync-indicator { padding: 4px 10px; }
+  .nav-actions { gap: 10px; align-items: center; }
+
+  /* Show add button in navbar on mobile, styled as a perfect circle */
+  .btn-add {
+    display: inline-flex !important;
+    padding: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3) !important;
+  }
+  .btn-add span { display: none; } /* Hide text */
+  .btn-add svg, .btn-add i {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+  }
+
+  /* Sync indicator: simplified to just a green light/dot next to add button */
+  .sync-indicator {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2px;
+  }
+  .sync-dot {
+    width: 10px;
+    height: 10px;
+  }
   .sync-label { display: none; }        /* show only dot on mobile */
   .top-navbar { height: 56px; padding: 0 16px; }
   .bottom-nav { display: block; }
