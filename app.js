@@ -1017,6 +1017,7 @@ function startWithLocalStorage() {
 let pinBuffer = "";
 let pinMode = null; // "setup" | "entry"
 let onPinSuccess = null;
+let remotePinHash = null; // Stores the PIN hash downloaded from Firestore
 
 function hashPin(pin) {
   let h = 0x5a3c9f;
@@ -1035,10 +1036,6 @@ function getPinStorageKey() {
 function getSessionKey() {
   const id = roomId || "local";
   return `cc_unlocked_${id}`;
-}
-
-function isPinSet() {
-  return !!localStorage.getItem(getPinStorageKey());
 }
 
 function isPinUnlocked() {
@@ -1100,16 +1097,30 @@ function handlePinDigit(digit) {
   updatePinDots(dotsId, pinBuffer.length);
 
   if (pinBuffer.length === 4) {
-    setTimeout(() => {
+    setTimeout(async () => {
+      const hashed = hashPin(pinBuffer);
       if (pinMode === "setup") {
-        localStorage.setItem(getPinStorageKey(), hashPin(pinBuffer));
+        // Save locally
+        localStorage.setItem(getPinStorageKey(), hashed);
+        
+        // Save to Firebase state settings if in firebase mode
+        if (useFirebase && state) {
+          if (!state.settings) state.settings = {};
+          state.settings.pinHash = hashed;
+          await saveState();
+        }
+        
         markPinUnlocked();
         hidePinScreens();
         pinBuffer = "";
         if (onPinSuccess) onPinSuccess();
       } else {
-        const stored = localStorage.getItem(getPinStorageKey());
-        if (stored === hashPin(pinBuffer)) {
+        // Compare with Firebase hash if available, otherwise local storage hash
+        const targetHash = useFirebase ? (remotePinHash || localStorage.getItem(getPinStorageKey())) : localStorage.getItem(getPinStorageKey());
+        
+        if (targetHash === hashed) {
+          // Store locally to avoid redownloads and mark session unlocked
+          localStorage.setItem(getPinStorageKey(), hashed);
           markPinUnlocked();
           hidePinScreens();
           pinBuffer = "";
@@ -1152,13 +1163,47 @@ document.addEventListener("keydown", e => {
   if (pinMode && (e.key === "Backspace" || e.key === "Delete")) handlePinDelete();
 });
 
-function checkPinThenProceed(onUnlocked) {
-  if (!isPinSet()) {
-    showPinSetup(onUnlocked);
-  } else if (!isPinUnlocked()) {
-    showPinEntry(onUnlocked);
+async function checkPinThenProceed(onUnlocked) {
+  if (useFirebase && db && roomId) {
+    try {
+      // Show loader while checking Firebase
+      document.getElementById("loading-screen")?.classList.remove("hidden");
+      
+      const doc = await db.collection("rooms").doc(roomId).get();
+      document.getElementById("loading-screen")?.classList.add("hidden");
+      
+      if (doc.exists && doc.data().settings?.pinHash) {
+        remotePinHash = doc.data().settings.pinHash;
+        if (isPinUnlocked()) {
+          onUnlocked();
+        } else {
+          showPinEntry(onUnlocked);
+        }
+      } else {
+        // No PIN exists in the database room yet (first time set up)
+        showPinSetup(onUnlocked);
+      }
+    } catch(e) {
+      console.error("Error reading PIN from Firebase:", e);
+      // Fallback to local PIN check if offline
+      document.getElementById("loading-screen")?.classList.add("hidden");
+      const localHash = localStorage.getItem(getPinStorageKey());
+      if (localHash) {
+        if (isPinUnlocked()) onUnlocked();
+        else showPinEntry(onUnlocked);
+      } else {
+        showPinSetup(onUnlocked);
+      }
+    }
   } else {
-    onUnlocked();
+    // Local mode PIN check
+    const localHash = localStorage.getItem(getPinStorageKey());
+    if (localHash) {
+      if (isPinUnlocked()) onUnlocked();
+      else showPinEntry(onUnlocked);
+    } else {
+      showPinSetup(onUnlocked);
+    }
   }
 }
 
