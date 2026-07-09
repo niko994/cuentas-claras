@@ -508,28 +508,7 @@ body {
 .bottom-nav-item.active { color: var(--brand); }
 .bottom-nav-item.active i { transform: scale(1.1); }
 
-.bottom-nav-item.add-btn {
-  background: var(--brand);
-  color: #fff;
-  border-radius: 50% !important;
-  width: 48px !important;
-  height: 48px !important;
-  flex: none;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.4);
-  padding: 0 !important;
-  margin-top: -16px;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: none !important;
-}
-.bottom-nav-item.add-btn i, .bottom-nav-item.add-btn svg {
-  width: 20px !important;
-  height: 20px !important;
-  display: block !important;
-  margin: 0 !important;
-}
+
 
 
 /* ===================== RESPONSIVE — TABLET ===================== */
@@ -540,10 +519,34 @@ body {
 /* ===================== RESPONSIVE — MOBILE ===================== */
 @media(max-width:768px) {
 
-  /* Hide top navbar nav-menu and add button on mobile (now on bottom nav) */
+  /* Hide top navbar nav-menu, show bottom nav */
   .nav-menu { display: none; }
-  .nav-actions { gap: 8px; }
-  .btn-add { display: none !important; }
+  .nav-actions { gap: 8px; align-items: center; }
+
+  /* Show add button in navbar on mobile, styled as a perfect circle */
+  .btn-add {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3) !important;
+    border: none !important;
+    background: var(--brand) !important;
+    color: #fff !important;
+  }
+  .btn-add span { display: none; } /* Hide text */
+  .btn-add svg, .btn-add i {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+    margin: 0 !important;
+    stroke: #fff !important;
+  }
 
   .sync-indicator { padding: 4px 10px; }
   .sync-label { display: none; }        /* show only dot on mobile */
