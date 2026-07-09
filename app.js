@@ -207,9 +207,10 @@ function calculateSplit(monthStr) {
   const pctA = totalSalary > 0 ? salaryA / totalSalary : 0.5;
   const pctB = totalSalary > 0 ? salaryB / totalSalary : 0.5;
 
+  // Only count real expenses (not settlements) for the split calculation
   const txs = monthStr
-    ? state.transactions.filter(t => t.type === "expense" && t.date?.substring(0, 7) === monthStr)
-    : state.transactions.filter(t => t.type === "expense");
+    ? state.transactions.filter(t => t.type === "expense" && !t.isSettlement && t.date?.substring(0, 7) === monthStr)
+    : state.transactions.filter(t => t.type === "expense" && !t.isSettlement);
 
   const totalExpenses = txs.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
   const paidA = txs.filter(t => t.payer === "personA").reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
@@ -219,7 +220,16 @@ function calculateSplit(monthStr) {
   const shouldPayB = totalExpenses * pctB;
 
   // diffA > 0 means A overpaid → B owes A
-  const diffA = paidA - shouldPayA;
+  // Subtract any settlement transactions: settlements from B to A reduce B's debt
+  const settlements = state.transactions.filter(t => t.isSettlement);
+  let settledForA = 0, settledForB = 0;
+  settlements.forEach(s => {
+    if (s.payer === "personB") settledForA += parseFloat(s.amount) || 0; // B paid A → reduces B debt
+    else settledForB += parseFloat(s.amount) || 0; // A paid B
+  });
+
+  // Net balance after settlements
+  const diffA = (paidA - shouldPayA) - settledForB + settledForA;
 
   const net = Math.abs(diffA);
   let debtor = null, creditor = null;
@@ -266,12 +276,15 @@ function updateNetHero() {
     heroAmount.textContent = formatted;
   }
 
+  const settleBtn = document.getElementById("btn-settle-balance");
+
   if (!debtor) {
     // Balanced!
     if (heroStatusBadge) heroStatusBadge.className = "net-status-badge balanced";
     if (heroStatusIcon) heroStatusIcon.setAttribute("data-lucide", "check-circle-2");
     if (heroStatusText) heroStatusText.textContent = "¡Cuentas al día!";
     if (heroSubtitle) heroSubtitle.textContent = "Todo está pareado. ¡Bien! 🎉";
+    if (settleBtn) settleBtn.classList.add("hidden");
   } else {
     const debtorName = getPersonName(debtor);
     const creditorName = getPersonName(creditor);
@@ -279,6 +292,7 @@ function updateNetHero() {
     if (heroStatusIcon) heroStatusIcon.setAttribute("data-lucide", "arrow-right-left");
     if (heroStatusText) heroStatusText.textContent = `${debtorName} debe pagar`;
     if (heroSubtitle) heroSubtitle.textContent = `${debtorName} le debe ${formatCurrency(net)} a ${creditorName}`;
+    if (settleBtn) settleBtn.classList.remove("hidden");
   }
 
   // Person A card (all-time overall status)
@@ -315,8 +329,11 @@ function updateNetHero() {
 
   const fpA = document.getElementById("footer-pct-a");
   const fpB = document.getElementById("footer-pct-b");
-  if (fpA) fpA.textContent = Math.round(pctA * 100) + "%";
-  if (fpB) fpB.textContent = Math.round(pctB * 100) + "%";
+  // Use floor+remainder to guarantee exactly 100%
+  const pctADisplay = Math.floor(pctA * 100);
+  const pctBDisplay = 100 - pctADisplay;
+  if (fpA) fpA.textContent = pctADisplay + "%";
+  if (fpB) fpB.textContent = pctBDisplay + "%";
 
   const fCount = document.getElementById("footer-tx-count");
   if (fCount) fCount.textContent = state.transactions.filter(t => t.type === "expense" && t.date?.startsWith(monthStr)).length;
@@ -437,14 +454,13 @@ function renderPayerChart() {
   const empty = document.getElementById("payer-chart-empty");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  const monthStr = new Date().toISOString().substring(0, 7);
+  // Use all-time totals so the chart reflects real cumulative data
+  const expenses = state.transactions.filter(t => t.type === "expense");
 
   let paidA = 0, paidB = 0;
-  state.transactions.forEach(t => {
-    if (t.type === "expense" && t.date?.substring(0, 7) === monthStr) {
-      if (t.payer === "personA") paidA += parseFloat(t.amount);
-      else paidB += parseFloat(t.amount);
-    }
+  expenses.forEach(t => {
+    if (t.payer === "personA") paidA += parseFloat(t.amount) || 0;
+    else paidB += parseFloat(t.amount) || 0;
   });
 
   if (payerChartInstance) { payerChartInstance.destroy(); payerChartInstance = null; }
@@ -460,20 +476,45 @@ function renderPayerChart() {
   const nameA = getPersonName("personA");
   const nameB = getPersonName("personB");
 
+  // Horizontal bar chart — more readable, different from doughnut category chart
   payerChartInstance = new Chart(ctx, {
-    type: "doughnut",
+    type: "bar",
     data: {
       labels: [nameA, nameB],
-      datasets: [{ data: [paidA, paidB], backgroundColor: ["rgba(99,102,241,0.8)","rgba(236,72,153,0.8)"], borderColor: ["#6366f1","#ec4899"], borderWidth: 2, hoverOffset: 6 }]
+      datasets: [{
+        label: "Total pagado",
+        data: [paidA, paidB],
+        backgroundColor: ["rgba(99,102,241,0.85)", "rgba(236,72,153,0.85)"],
+        borderColor: ["#6366f1", "#ec4899"],
+        borderWidth: 0,
+        borderRadius: 10,
+        borderSkipped: false
+      }]
     },
     options: {
-      cutout: "78%", responsive: true, maintainAspectRatio: false,
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: { position: "right", labels: { color: "#64748b", font: { family: "Inter", size: 11, weight: "600" }, padding: 14, usePointStyle: true, boxWidth: 8 } },
+        legend: { display: false },
         tooltip: {
           backgroundColor: "#fff", titleColor: "#0f172a", bodyColor: "#64748b",
           borderColor: "rgba(0,0,0,0.07)", borderWidth: 1, padding: 12, cornerRadius: 12,
-          callbacks: { label: c => ` ${formatCurrency(c.raw)}` }
+          callbacks: {
+            label: c => ` ${formatCurrency(c.raw)} (${((c.raw / (paidA + paidB)) * 100).toFixed(1)}%)`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: "rgba(0,0,0,0.04)" },
+          ticks: { color: "#64748b", font: { family: "Inter", size: 11 }, callback: v => formatCurrencyShort(v) },
+          border: { display: false }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: "#0f172a", font: { family: "Inter", size: 13, weight: "700" } },
+          border: { display: false }
         }
       }
     }
@@ -541,7 +582,8 @@ function renderTransactionsTable() {
   const countEl = document.getElementById("filtered-count");
   if (!tbody) return;
 
-  let filtered = state.transactions.filter(t => t.type === "expense");
+  // Include both expenses and settlement transactions in the table
+  let filtered = state.transactions.filter(t => t.type === "expense" || t.isSettlement);
 
   if (transactionFilters.search) {
     const q = transactionFilters.search.toLowerCase();
@@ -573,20 +615,25 @@ function renderTransactionsTable() {
   }
 
   tbody.innerHTML = paginated.map(t => {
-    const cat = CATEGORIES[t.category] || { emoji: "⚙️", name: t.category };
+    const cat = t.isSettlement
+      ? { emoji: "🤝", name: "Transferencia" }
+      : (CATEGORIES[t.category] || { emoji: "⚙️", name: t.category });
     const payerKey = t.payer || "personA";
     const payerName = getPersonName(payerKey);
     const payerClass = payerKey === "personA" ? "person-a" : "person-b";
+    const amountDisplay = t.isSettlement
+      ? `<span style="color:#22c55e;font-weight:700">↗ ${formatCurrency(t.amount)}</span>`
+      : `- ${formatCurrency(t.amount)}`;
     return `
-      <tr>
+      <tr${t.isSettlement ? ' style="background:rgba(34,197,94,0.04);"' : ''}>
         <td style="white-space:nowrap;color:var(--text-secondary);font-size:0.8rem;">${formatDate(t.date)}</td>
         <td style="font-weight:600;max-width:200px;">${t.description}</td>
-        <td><span style="font-size:0.78rem;background:#f1f5f9;padding:3px 9px;border-radius:999px;color:var(--text-secondary);font-weight:600;">${cat.emoji} ${cat.name}</span></td>
+        <td><span style="font-size:0.78rem;background:${t.isSettlement ? '#f0fdf4' : '#f1f5f9'};padding:3px 9px;border-radius:999px;color:${t.isSettlement ? '#16a34a' : 'var(--text-secondary)'};font-weight:600;">${cat.emoji} ${cat.name}</span></td>
         <td><span class="trans-payer-badge ${payerClass}">${payerName}</span></td>
-        <td style="text-align:right;font-weight:700;white-space:nowrap;">- ${formatCurrency(t.amount)}</td>
+        <td style="text-align:right;font-weight:700;white-space:nowrap;">${amountDisplay}</td>
         <td>
           <div class="table-actions-cell">
-            <button class="btn-table-icon btn-edit-tx" data-id="${t.id}"><i data-lucide="edit-3"></i></button>
+            ${!t.isSettlement ? `<button class="btn-table-icon btn-edit-tx" data-id="${t.id}"><i data-lucide="edit-3"></i></button>` : ''}
             <button class="btn-table-icon delete btn-delete-tx" data-id="${t.id}"><i data-lucide="trash-2"></i></button>
           </div>
         </td>
@@ -639,8 +686,9 @@ function updateSalaryShares() {
   const sA = parseFloat(document.getElementById("setting-salary-a")?.value) || 0;
   const sB = parseFloat(document.getElementById("setting-salary-b")?.value) || 0;
   const total = sA + sB;
-  const pA = total > 0 ? Math.round((sA / total) * 100) : 50;
-  const pB = total > 0 ? Math.round((sB / total) * 100) : 50;
+  // Use floor+remainder to guarantee exactly 100%
+  let pA = total > 0 ? Math.floor((sA / total) * 100) : 50;
+  let pB = total > 0 ? 100 - pA : 50;
   const elA = document.getElementById("share-pct-a");
   const elB = document.getElementById("share-pct-b");
   if (elA) elA.textContent = pA + "%";
@@ -920,6 +968,52 @@ function initEventHandlers() {
       await saveState();
       renderAll();
     });
+  });
+
+  // ---- SETTLE BALANCE BUTTON ----
+  document.getElementById("btn-settle-balance")?.addEventListener("click", () => {
+    const { net, debtor, creditor } = calculateSplit(null);
+    if (!debtor || net < 0.5) return;
+
+    const debtorName = getPersonName(debtor);
+    const creditorName = getPersonName(creditor);
+    const amountFormatted = formatCurrency(net);
+
+    confirmAction(
+      "Registrar transferencia",
+      `Se registrará que ${debtorName} transfirió ${amountFormatted} a ${creditorName}. El saldo quedará en $0.`,
+      async () => {
+        // Register a settlement transaction: the debtor "pays" an expense assigned to the creditor
+        // This effectively zeroes the balance by adding a transaction that covers the exact shortfall
+        const today = new Date().toISOString().substring(0, 10);
+        const settleTx = {
+          id: generateId(),
+          type: "settlement",
+          amount: net,
+          description: `Transferencia: ${debtorName} → ${creditorName}`,
+          category: "Transferencia",
+          date: today,
+          payer: debtor,
+          isSettlement: true
+        };
+        state.transactions.push(settleTx);
+        await saveState();
+        renderAll();
+
+        // Momentary feedback
+        const btn = document.getElementById("btn-settle-balance");
+        if (btn) {
+          btn.innerHTML = '<i data-lucide="check-circle-2"></i> <span>¡Saldado!</span>';
+          btn.disabled = true;
+          if (typeof lucide !== "undefined") lucide.createIcons();
+          setTimeout(() => {
+            btn.innerHTML = '<i data-lucide="handshake"></i> <span>Registrar transferencia y saldar</span>';
+            btn.disabled = false;
+            if (typeof lucide !== "undefined") lucide.createIcons();
+          }, 3000);
+        }
+      }
+    );
   });
 }
 
