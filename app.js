@@ -774,20 +774,39 @@ function renderAll() {
 // ===================== EVENT HANDLERS =====================
 
 function initEventHandlers() {
-  // Tabs
-  document.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", () => {
-      const tab = item.getAttribute("data-tab");
-      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-      item.classList.add("active");
-      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-      const panel = document.getElementById(`panel-${tab}`);
-      if (panel) panel.classList.add("active");
-      if (tab === "dashboard") {
-        setTimeout(() => { renderCategoryChart(); renderPayerChart(); renderTrendChart(); }, 80);
-      }
+
+  // ---- Shared tab switch helper ----
+  function switchTab(tab) {
+    // Top nav
+    document.querySelectorAll(".nav-item").forEach(n => {
+      n.classList.toggle("active", n.getAttribute("data-tab") === tab);
     });
+    // Bottom nav
+    document.querySelectorAll(".bottom-nav-item[data-tab]").forEach(n => {
+      n.classList.toggle("active", n.getAttribute("data-tab") === tab);
+    });
+    // Panels
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    const panel = document.getElementById(`panel-${tab}`);
+    if (panel) panel.classList.add("active");
+    if (tab === "dashboard") {
+      setTimeout(() => { renderCategoryChart(); renderPayerChart(); renderTrendChart(); }, 80);
+    }
+  }
+
+  // Tabs — top navbar
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => switchTab(item.getAttribute("data-tab")));
   });
+
+  // Tabs — bottom navbar
+  document.querySelectorAll(".bottom-nav-item[data-tab]").forEach(item => {
+    item.addEventListener("click", () => switchTab(item.getAttribute("data-tab")));
+  });
+
+  // FAB button (bottom nav)
+  document.getElementById("bnav-add")?.addEventListener("click", () => openModal());
+  document.getElementById("bnav-demo")?.addEventListener("click", loadDemoData);
 
   // Modal open/close
   document.getElementById("btn-open-add-modal")?.addEventListener("click", () => openModal());

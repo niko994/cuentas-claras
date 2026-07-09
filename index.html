@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#0f172a">
   <title>Cuentas Claras — División de Gastos</title>
   <meta name="description" content="Dividí gastos entre dos personas de forma proporcional a los sueldos. Sincronización en tiempo real.">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -145,6 +149,31 @@
       <button class="btn btn-primary btn-add" id="btn-open-add-modal">
         <i data-lucide="plus"></i>
         <span>Nuevo Gasto</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================== BOTTOM NAV (mobile only) ===================== -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bottom-nav-item active" data-tab="dashboard" id="bnav-dashboard">
+        <i data-lucide="layout-dashboard"></i>
+        Resumen
+      </button>
+      <button class="bottom-nav-item" data-tab="transactions" id="bnav-transactions">
+        <i data-lucide="list"></i>
+        Gastos
+      </button>
+      <button class="bottom-nav-item add-btn" id="bnav-add">
+        <i data-lucide="plus"></i>
+      </button>
+      <button class="bottom-nav-item" data-tab="settings" id="bnav-settings">
+        <i data-lucide="users"></i>
+        Personas
+      </button>
+      <button class="bottom-nav-item" id="bnav-demo">
+        <i data-lucide="zap"></i>
+        Demo
       </button>
     </div>
   </nav>
