@@ -229,7 +229,7 @@ function calculateSplit(monthStr) {
   });
 
   // Net balance after settlements
-  const diffA = (paidA - shouldPayA) - settledForB + settledForA;
+  const diffA = (paidA - shouldPayA) - settledForA + settledForB;
 
   const net = Math.abs(diffA);
   let debtor = null, creditor = null;
